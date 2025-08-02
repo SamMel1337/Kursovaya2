@@ -1,76 +1,73 @@
 import abc
 import json
-import os.path
-from pprint import pprint
-
+import os
 
 class FileHendler(abc.ABC):
-    def init(self, filename):
+    """
+    Инициализация класса с указанием имени файла.
+    """
+
+    def __init__(self, filename):
         self.filename = filename
 
     @abc.abstractmethod
-    def add_vacancy(self, vacancy):
+    def add_vacancy(self, vacancy: dict) -> None:
         pass
 
     @abc.abstractmethod
-    def get_vacancy(self, **critery):
+    def get_vacancy(self, **critery: dict):
         pass
 
     @abc.abstractmethod
-    def delete_vacancy(self, vacancy_id):
+    def delete_vacancy(self, vacancy_id: dict) -> None:
         pass
 
 
 class JsonFileHendler(FileHendler):
-    def __init(self, filename="./data/vacancies.json"):
-        super().init(filename)
+    def __init__(self, filename="./data/vacancies.json"):
+        super().__init__(filename)
 
-
-    def get_vacancy(self, **critery):
+    def get_vacancy(self, **critery: dict):
         """Метод получения вакансии по указаным критериям"""
-        if not os.path.exists(self._FileHendler__filename):
+        if not os.path.exists(self.filename):
             return []
-        with open(self._FileHendler__filename, "r", encoding="utf-8") as f:
-            vacancys= json.load(f)
+
+        with open(self.filename, "r", encoding="utf-8") as f:
+            vacancys = json.load(f)
+
+        # Предполагается структура файла — список словарей или словарь с ключом "items"
+        items = vacancys.get("items") if isinstance(vacancys, dict) else vacancys
 
         if critery:
             filter_vacancy = []
-            for vacancte in vacancys.get("items"):
+            for vacan in items:
+                match = True
                 for key, value in critery.items():
-                    if value in vacancte.get(key):
-                        print(vacancte)
-                        filter_vacancy.append(vacancte)
+                    # Проверка наличия ключа и совпадения значения
+                    if key not in vacan or value not in str(vacan[key]):
+                        match = False
+                        break
+                if match:
+                    filter_vacancy.append(vacan)
             return filter_vacancy
-        return vacancys
+        return items
 
-    def delete_vacancy(self, vacancy_id):
+    def delete_vacancy(self, vacancy_id: dict):
+        # Реализация удаления по ID (если нужно)
         pass
-    def add_vacancy(self, vacancy):
-        """Метод о сохрании информации"""
-        vacancies = self.get_vacancy()
+
+    def add_vacancy(self, vacancy: dict):
+        """Метод сохранения информации"""
+        if not os.path.exists(self.filename):
+            vacancies = []
+        else:
+            with open(self.filename, 'r', encoding='utf-8') as file:
+                try:
+                    vacancies = json.load(file)
+                except json.JSONDecodeError:
+                    vacancies = []
+
         if vacancy not in vacancies:
-            with open(self._FileHendler__filename, 'r+', encoding='utf-8') as file:
-                vacancies = json.load(file)
-                vacancies.append(vacancy)
-
-
-if __name__ == "__main__":
-    file_hander = JsonFileHendler()
-    vacanes = file_hander.get_vacancy()
-
-    def __lt(self, other):
-        return self.salary < other.salary
-
-    def gt(self, other):
-        return self.salary > other.salary
-
-    def to_dict(self):
-        return {
-            'title': self.title,
-            'firm_com': self.firm_com,
-            'salary':self.salary,
-            'url':self.url,
-            'description': self.description
-
-
-        }
+            vacancies.append(vacancy)
+            with open(self.filename, 'w', encoding='utf-8') as file:
+                json.dump(vacancies, file, ensure_ascii=False, indent=4)

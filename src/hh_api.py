@@ -1,4 +1,6 @@
 import  abc
+from typing import AnyStr
+from typing import Dict, Any
 import requests
 from pprint import pprint
 
@@ -9,23 +11,50 @@ class JobAPI(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_vacancies(self, keyword: str, page:int):
+    def get_vacancies(self, keyword: str, page:int) -> None:
         """Метод подключения вакансий по ключевому слову"""
+        pass
 
+"""
+Класс hh_API предназначен для взаимодействия с API сайта HeadHunter (hh.ru)
+для получения вакансий по ключевым словам. Наследует от базового класса JobAPI.
+Обеспечивает подключение к API, получение вакансий и обработку ответов.
+"""
 class hh_API(JobAPI):
+    # Базовый URL для API вакансий HeadHunter
     __BASE_URL = 'https://api.hh.ru/vacancies'
+
+    """
+    Инициализация объекта hh_API.
+    """
 
     def __init__(self):
         self.__session = None
 
-    def _connect(self):
-         """Метод для подключения к API"""
-         self.__session = requests.Session()
-         response = self.__session.get(self.__BASE_URL)
-         response.raise_for_status()
-         return  response
+    """
+    Метод для установления соединения с API.
 
-    def get_vacancies(self, keyword: str, page: int, per_page: int = 100):
+    :return: Объект ответа от requests.Session().
+    """
+
+    def _connect(self):
+        """Метод для подключения к API"""
+        self.__session = requests.Session()
+        response = self.__session.get(self.__BASE_URL)
+        response.raise_for_status()
+        return response
+
+    """
+    Метод для получения вакансий по ключевому слову.
+
+    :param keyword: Ключевое слово для поиска вакансий.
+    :param page: Номер страницы результатов.
+    :param per_page: Количество вакансий на странице (по умолчанию 100).
+
+    :return: Список словарей с информацией о вакансиях.
+    """
+
+    def get_vacancies(self, keyword: str, page: int, per_page: int = 100) -> Any:
         """Метод для получения по ключевому слову"""
         self._connect()
         params = {"text": keyword, "per_page": per_page, "page": page}
